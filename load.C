@@ -1,4 +1,4 @@
 void load()
 {   
-   gSystem->Load("../libCFIT.so");
+   gSystem->Load("../CFIT/libCFIT.so");
 }

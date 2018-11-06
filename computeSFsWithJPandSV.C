@@ -1,4 +1,4 @@
-#include "../cfit.h"
+#include "../CFIT/cfit.h"
 #include "TROOT.h"
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
@@ -156,7 +156,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
    gROOT->SetBatch();
     
     
-   gSystem->Load("../libCFIT.so");
+   gSystem->Load("../CFIT/libCFIT.so");
    //gROOT->SetStyle("Plain");
    //gROOT->ProcessLine(".L ~/tdrStyle.C");
    //setTDRStyle();
@@ -189,19 +189,20 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
    double v_sftotdo[9] = {0.,0.,0.,0.,0.,0.,0.,0.,0.};
 
    // map of syst errors per bin
-   double v_sf_syst[21][9];
+   double v_sf_syst[23][9];
 
    // arrays of x values
    double v_pt[9]={25., 40., 60., 85., 120., 170., 250., 485., 835.};
    double v_pterr[9] = {5, 10, 10, 15, 20, 30, 50, 185, 165};
 
-   string systematics[21] = {  "_JER_do","_JER_up",
+   string systematics[23] = {  "_JER_do","_JER_up",
                                "_JES_do","_JES_up",
                                "_gluonSplitting_do","_gluonSplitting_up",
                                "_bFragmentation_do","_bFragmentation_up",
                                "_cFragmentation_do","_cFragmentation_up",
                                "_cdFragmentation_do","_cdFragmentation_up",
                                "_v0_do","_v0_up",
+                               "_cSVmass_do", "_cSVmass_up",
                                "_morph1",
                                "_morph2",
                                "_morph3",
@@ -215,8 +216,11 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      std::cout << ">>>>>>>>>>>>>>>> Running bin " << bins[ibin] << std::endl;
   
      CFIT::cfit *cfSV = new CFIT::cfit("SV");
+     cfSV->SetPlotDirName("picsSV");
      CFIT::cfit *cfJP = new CFIT::cfit("JP");
+     cfJP->SetPlotDirName("picsJP");
      CFIT::cfit *cfJPtagged = new CFIT::cfit("JPtagged");
+     cfJPtagged->SetPlotDirName("picsJPtagged");
      
      cfSV->SetOptimization(OPT_MORPH_SGN_SIGMA);
      cfSV->SetMorphing(OPTMORPH_CUTOFF,0.5);
@@ -240,6 +244,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      cfSV->AddSys("cFragmentation","_cFragmentation_do","_cFragmentation_up");
      cfSV->AddSys("bFragmentation","_bFragmentation_do","_bFragmentation_up");
      cfSV->AddSys("v0","_v0_do","_v0_up");
+     cfSV->AddSys("cSVmass", "_cSVmass_do", "_cSVmass_up");
   
      cfJP->AddSys("JER","_JER_do","_JER_up");
      cfJP->AddSys("JES","_JES_do","_JES_up");
@@ -248,6 +253,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      cfJP->AddSys("cFragmentation","_cFragmentation_do","_cFragmentation_up");
      cfJP->AddSys("bFragmentation","_bFragmentation_do","_bFragmentation_up");
      cfJP->AddSys("v0","_v0_do","_v0_up");
+     cfJP->AddSys("cSVmass", "_cSVmass_do", "_cSVmass_up");
  
      cfJPtagged->AddSys("JER","_JER_do","_JER_up");
      cfJPtagged->AddSys("JES","_JES_do","_JES_up");
@@ -256,6 +262,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      cfJPtagged->AddSys("cFragmentation","_cFragmentation_do","_cFragmentation_up");
      cfJPtagged->AddSys("bFragmentation","_bFragmentation_do","_bFragmentation_up");
      cfJPtagged->AddSys("v0","_v0_do","_v0_up");
+     cfJPtagged->AddSys("cSVmass", "_cSVmass_do", "_cSVmass_up");
      
      const char* thebin = bins[ibin].c_str(); 
 
@@ -263,20 +270,20 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      cfSV->SetMatrixOption("WRITE");   
 
      cfSV->SetData(Form("data/SVmass__ptbin_%s", thebin));
-     cfSV->SetDataTag(Form("data/SVmass__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-     cfSV->SetDataUntag(Form("data/SVmass__ptbin_%s_DeepCSVBDisc%s_Fail", thebin, wp));
+     cfSV->SetDataTag(Form("data/SVmass__ptbin_%s_DeepFlavour%s", thebin, wp));
+     cfSV->SetDataUntag(Form("data/SVmass__ptbin_%s_DeepFlavour%s_Fail", thebin, wp));
 
      cfSV->AddTemplate("b",Form("mc/SVmass__ptbin_%s_b", thebin),2);
      cfSV->AddTemplate("c",Form("mc/SVmass__ptbin_%s_c", thebin),3);
      cfSV->AddTemplate("l",Form("mc/SVmass__ptbin_%s_l", thebin),4);
 
-     cfSV->AddTemplateTag("b",Form("mc/SVmass__ptbin_%s_b_DeepCSVBDisc%s", thebin, wp),2);
-     cfSV->AddTemplateTag("c",Form("mc/SVmass__ptbin_%s_c_DeepCSVBDisc%s", thebin, wp),3);
-     cfSV->AddTemplateTag("l",Form("mc/SVmass__ptbin_%s_l_DeepCSVBDisc%s", thebin, wp),4);
+     cfSV->AddTemplateTag("b",Form("mc/SVmass__ptbin_%s_b_DeepFlavour%s", thebin, wp),2);
+     cfSV->AddTemplateTag("c",Form("mc/SVmass__ptbin_%s_c_DeepFlavour%s", thebin, wp),3);
+     cfSV->AddTemplateTag("l",Form("mc/SVmass__ptbin_%s_l_DeepFlavour%s", thebin, wp),4);
 
-     cfSV->AddTemplateUntag("b",Form("mc/SVmass__ptbin_%s_b_DeepCSVBDisc%s_Fail", thebin, wp),2);
-     cfSV->AddTemplateUntag("c",Form("mc/SVmass__ptbin_%s_c_DeepCSVBDisc%s_Fail", thebin, wp),3);
-     cfSV->AddTemplateUntag("l",Form("mc/SVmass__ptbin_%s_l_DeepCSVBDisc%s_Fail", thebin, wp),4);   
+     cfSV->AddTemplateUntag("b",Form("mc/SVmass__ptbin_%s_b_DeepFlavour%s_Fail", thebin, wp),2);
+     cfSV->AddTemplateUntag("c",Form("mc/SVmass__ptbin_%s_c_DeepFlavour%s_Fail", thebin, wp),3);
+     cfSV->AddTemplateUntag("l",Form("mc/SVmass__ptbin_%s_l_DeepFlavour%s_Fail", thebin, wp),4);   
 
 
      cfJP->SetMatrixName("matrixJP");
@@ -285,16 +292,16 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      cfJP->SetData(Form("data/JP__ptbin_%s", thebin));
      cfJP->SetDataTag(Form("data/JP__ptbin_%s_SV", thebin));
      cfJP->SetDataUntag(Form("data/JP__ptbin_%s_NoSV", thebin));
-     //cfJP->SetDataTag(Form("data/JP__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-     //cfJP->SetDataUntag(Form("data/JP__ptbin_%s_DeepCSVBDisc%s_Fail", thebin, wp));
+     //cfJP->SetDataTag(Form("data/JP__ptbin_%s_DeepFlavour%s", thebin, wp));
+     //cfJP->SetDataUntag(Form("data/JP__ptbin_%s_DeepFlavour%s_Fail", thebin, wp));
 
      cfJP->AddTemplate("b",Form("mc/JP__ptbin_%s_b", thebin),2);
      cfJP->AddTemplate("c",Form("mc/JP__ptbin_%s_c", thebin),3);
      cfJP->AddTemplate("l",Form("mc/JP__ptbin_%s_l", thebin),4);
 
-     //cfJP->AddTemplateTag("b",Form("mc/JP__ptbin_%s_b_DeepCSVBDisc%s", thebin, wp),2);
-     //cfJP->AddTemplateTag("c",Form("mc/JP__ptbin_%s_c_DeepCSVBDisc%s", thebin, wp),3);
-     //cfJP->AddTemplateTag("l",Form("mc/JP__ptbin_%s_l_DeepCSVBDisc%s", thebin, wp),4);
+     //cfJP->AddTemplateTag("b",Form("mc/JP__ptbin_%s_b_DeepFlavour%s", thebin, wp),2);
+     //cfJP->AddTemplateTag("c",Form("mc/JP__ptbin_%s_c_DeepFlavour%s", thebin, wp),3);
+     //cfJP->AddTemplateTag("l",Form("mc/JP__ptbin_%s_l_DeepFlavour%s", thebin, wp),4);
      cfJP->AddTemplateTag("b",Form("mc/JP__ptbin_%s_b_SV", thebin),2);
      cfJP->AddTemplateTag("c",Form("mc/JP__ptbin_%s_c_SV", thebin),3);
      cfJP->AddTemplateTag("l",Form("mc/JP__ptbin_%s_l_SV", thebin),4);
@@ -307,27 +314,29 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      cfJPtagged->SetMatrixName("matrixJPtagged");
      cfJPtagged->SetMatrixOption("WRITE");
 
-     cfJPtagged->SetData(Form("data/JP__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-     cfJPtagged->SetDataTag(Form("data/JP__ptbin_%s_DeepCSVBDisc%sSV", thebin,wp));
-     cfJPtagged->SetDataUntag(Form("data/JP__ptbin_%s_DeepCSVBDisc%sNoSV", thebin,wp));
+     cfJPtagged->SetData(Form("data/JP__ptbin_%s_DeepFlavour%s", thebin, wp));
+     cfJPtagged->SetDataTag(Form("data/JP__ptbin_%s_DeepFlavour%sSV", thebin,wp));
+     cfJPtagged->SetDataUntag(Form("data/JP__ptbin_%s_DeepFlavour%sNoSV", thebin,wp));
 
-     cfJPtagged->AddTemplate("b",Form("mc/JP__ptbin_%s_b_DeepCSVBDisc%s", thebin, wp),2);
-     cfJPtagged->AddTemplate("c",Form("mc/JP__ptbin_%s_c_DeepCSVBDisc%s", thebin, wp),3);
-     cfJPtagged->AddTemplate("l",Form("mc/JP__ptbin_%s_l_DeepCSVBDisc%s", thebin, wp),4);
+     cfJPtagged->AddTemplate("b",Form("mc/JP__ptbin_%s_b_DeepFlavour%s", thebin, wp),2);
+     cfJPtagged->AddTemplate("c",Form("mc/JP__ptbin_%s_c_DeepFlavour%s", thebin, wp),3);
+     cfJPtagged->AddTemplate("l",Form("mc/JP__ptbin_%s_l_DeepFlavour%s", thebin, wp),4);
 
-     cfJPtagged->AddTemplateTag("b",Form("mc/JP__ptbin_%s_b_DeepCSVBDisc%s_SV", thebin, wp),2);
-     cfJPtagged->AddTemplateTag("c",Form("mc/JP__ptbin_%s_c_DeepCSVBDisc%s_SV", thebin, wp),3);
-     cfJPtagged->AddTemplateTag("l",Form("mc/JP__ptbin_%s_l_DeepCSVBDisc%s_SV", thebin, wp),4);
+     cfJPtagged->AddTemplateTag("b",Form("mc/JP__ptbin_%s_b_DeepFlavour%s_SV", thebin, wp),2);
+     cfJPtagged->AddTemplateTag("c",Form("mc/JP__ptbin_%s_c_DeepFlavour%s_SV", thebin, wp),3);
+     cfJPtagged->AddTemplateTag("l",Form("mc/JP__ptbin_%s_l_DeepFlavour%s_SV", thebin, wp),4);
 
-     cfJPtagged->AddTemplateUntag("b",Form("mc/JP__ptbin_%s_b_DeepCSVBDisc%s_NoSV", thebin, wp),2);
-     cfJPtagged->AddTemplateUntag("c",Form("mc/JP__ptbin_%s_c_DeepCSVBDisc%s_NoSV", thebin, wp),3);
-     cfJPtagged->AddTemplateUntag("l",Form("mc/JP__ptbin_%s_l_DeepCSVBDisc%s_NoSV", thebin, wp),4);
+     cfJPtagged->AddTemplateUntag("b",Form("mc/JP__ptbin_%s_b_DeepFlavour%s_NoSV", thebin, wp),2);
+     cfJPtagged->AddTemplateUntag("c",Form("mc/JP__ptbin_%s_c_DeepFlavour%s_NoSV", thebin, wp),3);
+     cfJPtagged->AddTemplateUntag("l",Form("mc/JP__ptbin_%s_l_DeepFlavour%s_NoSV", thebin, wp),4);
 
      double sfcentral = computeSF(cfSV, cfJP, cfJPtagged, true); 
-     system(Form("mv pics pics_%s", thebin));
+     system(Form("mv picsSV picsSV_%s", thebin));
+     system(Form("mv picsJP picsJP_%s", thebin));
+     system(Form("mv picsJPtagged picsJPtagged_%s", thebin));
 
      // these are the 19 systematic variations for this bin
-     double sfvars[19]={}; 
+     double sfvars[23]={}; 
 
      cout << "sf_central " <<  sfcentral << endl;
      // perform statistical variation
@@ -336,7 +345,8 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      double statSqSum = 0; 
      int nVariations = 10;
      for(int is=0;is<nVariations;is++)
-     {  
+     { 
+        cout << "doing stat variation: " << is << endl; 
         int isys = 666+is;
         cfJP->SetMatrixOption("READ");
         cfJP->ProducePlots(0);
@@ -358,7 +368,8 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
 
      // perform systematic variation
      //
-     for (unsigned int i = 0; i < 14; ++i){ 
+     for (unsigned int i = 0; i < 16; ++i){
+      cout << "doing systematic variation " << systematics[i] << endl;
       cfJP->SetMatrixOption("READ");
       cfJP->SetSysVariation(systematics[i]);
       cfJPtagged->SetMatrixOption("READ");
@@ -373,7 +384,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
    
      double errdosq = 0;
      double errupsq = 0;
-     for (unsigned int i = 0; i < 14; ++i){
+     for (unsigned int i = 0; i < 16; ++i){
        //if (i%2 == 0)
        if ((sfvars[i] - sfcentral) < 0.)
          errdosq += (sfvars[i] - sfcentral)*(sfvars[i] - sfcentral);
@@ -381,6 +392,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
          errupsq += (sfvars[i] - sfcentral)*(sfvars[i] - sfcentral);
      }
      for (unsigned int ifit = 0; ifit < 7; ++ifit){
+        cout << "doing systematic variation " << systematics[16+ifit] << endl;
        cfJP->SetMatrixOption("WRITE");
        cfJP->ProducePlots(0);
        cfJP->SetOptimization(OPT_MORPH_SGN_SIGMA);
@@ -388,16 +400,16 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
        cfJP->SetData(Form("data/JP__ptbin_%s", thebin));
        cfJP->SetDataTag(Form("data/JP__ptbin_%s_SV", thebin));
        cfJP->SetDataUntag(Form("data/JP__ptbin_%s_NoSV", thebin));
-       cfJPtagged->SetData(Form("data/JP__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-       cfJPtagged->SetDataTag(Form("data/JP__ptbin_%s_DeepCSVBDisc%sSV", thebin,wp));
-       cfJPtagged->SetDataUntag(Form("data/JP__ptbin_%s_DeepCSVBDisc%sNoSV", thebin,wp)); 
+       cfJPtagged->SetData(Form("data/JP__ptbin_%s_DeepFlavour%s", thebin, wp));
+       cfJPtagged->SetDataTag(Form("data/JP__ptbin_%s_DeepFlavour%sSV", thebin,wp));
+       cfJPtagged->SetDataUntag(Form("data/JP__ptbin_%s_DeepFlavour%sNoSV", thebin,wp)); 
        cfSV->SetMatrixOption("WRITE");
        cfSV->ProducePlots(0);
        cfSV->SetOptimization(OPT_MORPH_SGN_SIGMA);
        cfSV->SetMorphing(OPTMORPH_CUTOFF,0.5);
        cfSV->SetData(Form("data/SVmass__ptbin_%s", thebin));
-       cfSV->SetDataTag(Form("data/SVmass__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-       cfSV->SetDataUntag(Form("data/SVmass__ptbin_%s_DeepCSVBDisc%s_Fail", thebin, wp)); 
+       cfSV->SetDataTag(Form("data/SVmass__ptbin_%s_DeepFlavour%s", thebin, wp));
+       cfSV->SetDataUntag(Form("data/SVmass__ptbin_%s_DeepFlavour%s_Fail", thebin, wp)); 
        if (ifit == 0) {cfSV->SetOptimization(OPT_NOCORR); cfJP->SetOptimization(OPT_NOCORR); cfJPtagged->SetOptimization(OPT_NOCORR);}
        if (ifit == 1) {cfSV->SetMorphing(OPTMORPH_CUTOFF,0.25); cfJP->SetMorphing(OPTMORPH_CUTOFF,0.25); cfJPtagged->SetMorphing(OPTMORPH_CUTOFF,0.25);}
        if (ifit == 2) {cfSV->SetMorphing(OPTMORPH_CUTOFF,0.75); cfJP->SetMorphing(OPTMORPH_CUTOFF,0.75); cfJPtagged->SetMorphing(OPTMORPH_CUTOFF,0.75);}
@@ -406,40 +418,46 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
         cfJP->SetData(Form("data_inverted/JP__ptbin_%s", thebin));
         cfJP->SetDataTag(Form("data_inverted/JP__ptbin_%s_SV", thebin));
         cfJP->SetDataUntag(Form("data_inverted/JP__ptbin_%s_NoSV", thebin));
-        cfJPtagged->SetData(Form("data_inverted/JP__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-        cfJPtagged->SetDataTag(Form("data_inverted/JP__ptbin_%s_DeepCSVBDisc%sSV", thebin,wp));
-        cfJPtagged->SetDataUntag(Form("data_inverted/JP__ptbin_%s_DeepCSVBDisc%sNoSV", thebin,wp));
+        cfJPtagged->SetData(Form("data_inverted/JP__ptbin_%s_DeepFlavour%s", thebin, wp));
+        cfJPtagged->SetDataTag(Form("data_inverted/JP__ptbin_%s_DeepFlavour%sSV", thebin,wp));
+        cfJPtagged->SetDataUntag(Form("data_inverted/JP__ptbin_%s_DeepFlavour%sNoSV", thebin,wp));
         cfSV->SetData(Form("data_inverted/SVmass__ptbin_%s", thebin));
-        cfSV->SetDataTag(Form("data_inverted/SVmass__ptbin_%s_DeepCSVBDisc%s", thebin, wp));
-        cfSV->SetDataUntag(Form("data_inverted/SVmass__ptbin_%s_DeepCSVBDisc%s_Fail", thebin, wp));
+        cfSV->SetDataTag(Form("data_inverted/SVmass__ptbin_%s_DeepFlavour%s", thebin, wp));
+        cfSV->SetDataUntag(Form("data_inverted/SVmass__ptbin_%s_DeepFlavour%s_Fail", thebin, wp));
        } 
        if (ifit < 5){ 
-         if (ifit == 4)
-           system("mkdir pics");
+         if (ifit == 4){
+           system("mkdir picsSV");
+           system("mkdir picsJP");
+           system("mkdir picsJPtagged");
+         }  
          double  sf = computeSF(cfSV, cfJP, cfJPtagged);
-         if (ifit == 4)
-            system(Form("mv pics pics_inverted_%s", thebin));
-         sfvars[ifit+20] = sf;
-         v_sf_syst[ifit+20][ibin] = sf;
+         if (ifit == 4){
+            system(Form("mv picsSV picsSV_inverted_%s", thebin));
+            system(Form("mv picsJP picsJP_inverted_%s", thebin));
+            system(Form("mv picsJPtagged picsJPtagged_inverted_%s", thebin));
+         }   
+         sfvars[ifit+16] = sf;
+         v_sf_syst[ifit+16][ibin] = sf;
          errdosq += (sf - sfcentral)*(sf - sfcentral);
          errupsq += (sf - sfcentral)*(sf - sfcentral);
        } else { // Cb variation
-         sfvars[ifit+20] = sfcentral;
+         sfvars[ifit+16] = sfcentral;
          TFile fileinraw(filein);
          double nbmc = ((TH1*)fileinraw.Get(Form("mc/SVmass__ptbin_%s_b", thebin)))->Integral(); 
          double nbmc_jp = nbmc - ((TH1*)fileinraw.Get(Form("mc/SVmass__ptbin_%s_b_JP0", thebin)))->Integral();
-         double nbmctag = ((TH1*)fileinraw.Get(Form("mc/SVmass__ptbin_%s_b_DeepCSVBDisc%s", thebin, wp)))->Integral() ;
-         double nbmctag_jp = nbmctag - ((TH1*)fileinraw.Get(Form("mc/SVmass__ptbin_%s_b_DeepCSVBDisc%s_JP0", thebin, wp)))->Integral();
+         double nbmctag = ((TH1*)fileinraw.Get(Form("mc/SVmass__ptbin_%s_b_DeepFlavour%s", thebin, wp)))->Integral() ;
+         double nbmctag_jp = nbmctag - ((TH1*)fileinraw.Get(Form("mc/SVmass__ptbin_%s_b_DeepFlavour%s_JP0", thebin, wp)))->Integral();
          cout << "nbmc " << nbmc << " nbmc_jp " << nbmc_jp << " nbmctag " << nbmctag << "nbmctag_jp " << nbmctag_jp << endl;
          double Cb=(nbmctag/nbmctag_jp)*(nbmc_jp/nbmc);
          double Cb_error = fabs(1-Cb)/2;
          cout << "Cb " << Cb << " Cb_error " << Cb_error << endl;
          if (ifit == 5){
-           v_sf_syst[ifit+14][ibin] = sfcentral*(1+Cb_error);
+           v_sf_syst[ifit+16][ibin] = sfcentral*(1+Cb_error);
            errupsq += (Cb_error*sfcentral)*(Cb_error*sfcentral);
          } 
          if (ifit == 6){
-           v_sf_syst[ifit+14][ibin] = sfcentral*(1-Cb_error);
+           v_sf_syst[ifit+16][ibin] = sfcentral*(1-Cb_error);
            errdosq += (Cb_error*sfcentral)*(Cb_error*sfcentral);
          }
        }
@@ -455,7 +473,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
      delete cfJP;
    }
   
-   TFile output(Form("DeepCSVBDisc%s.root", wp), "recreate"); 
+   TFile output(Form("DeepFlavour%s.root", wp), "recreate"); 
 
    TGraphErrors gcentral(9, v_pt, v_sf, v_pterr, v_sfstat);
    gcentral.SetNameTitle("statistical", "statistical");
@@ -478,7 +496,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
 
    gcentral.Write();
    gtotal.Write();
-   for (unsigned int i = 0; i < 21; ++i){
+   for (unsigned int i = 0; i < 23; ++i){
      TGraphErrors gsyst(9, v_pt, v_sf_syst[i], v_pterr, 0);
      gsyst.SetNameTitle(Form("variation%s", systematics[i].c_str()), Form("variation%s", systematics[i].c_str()));
      gsyst.Write();
@@ -487,7 +505,7 @@ void computeSFsWithJPandSV(const char* filein, const char* wp, const char* outdi
 
    system(Form("mkdir -p %s/%s", outdir, wp));
    system(Form("mv pics* %s/%s", outdir, wp));
-   system(Form("mv DeepCSVBDisc%s.root %s/%s", wp, outdir, wp));
+   system(Form("mv DeepFlavour%s.root %s/%s", wp, outdir, wp));
 
    //gApplication->Terminate();
 }
