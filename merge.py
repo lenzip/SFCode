@@ -23,16 +23,16 @@ def doMove (filein, fileout, dirout, normalize) :
       if not cl.InheritsFrom("TH1"): continue
       h = key.ReadObj();
       if (normalize and h.Integral()>0):
-        print h.GetName()
+        print(h.GetName())
         for ext in systematics:
           if ext in h.GetName():
-            print "this is a systematic variation", ext
+            print("this is a systematic variation", ext)
             # get the central
             hcentral = filein.Get(h.GetName().replace(ext, ""))
             h.Scale(hcentral.Integral()/h.Integral());
             break
         else:
-          print "this is the central"
+          print("this is the central")
       directory.cd();
       h.Write();
 
